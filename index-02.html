@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+
+	<head lang="en">
+		<meta charset="utf-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="format-detection" content="telephone=no">
+		<meta name="renderer" content="webkit">
+		<meta http-equiv="Cache-Control" content="no-siteapp" />
+		<link rel="stylesheet" href="http://cdn.amazeui.org/amazeui/2.6.2/css/amazeui.min.css">
+		<title></title>
+		<style>
+			.little-Navi-item{
+				width:100%;
+				margin-bottom: 10px;
+			}
+			.little-Navi-img{
+				margin-left: 60%;
+				cursor:pointer;
+			}
+			
+		</style>
+		
+	</head>
+
+	<body>
+		<header style="height: 40px;background-color: cornflowerblue;padding: 0;margin: 0;"></header>
+		<div id="little-Navi" style="width: 200px;position: absolute;top: 100px;right: 0px;"></div>
+		<img src="img/t3.png" id="arrow-down" style="width: 150px;position: absolute;bottom: 10px;left: 50%;margin-left: -75px;"></img>
+		<img src="img/t4.png" id="arrow-top" style="width: 60px;position: absolute;bottom: 40px;right: 40px;"></img>
+		<div id="father-div" style="background-color: blue;overflow: hidden">
+			<section class="scroll-section" id="section01" style="background-color: yellow;">
+				<img src="img/sssssss.jpg" />
+			</section>
+			<section class="scroll-section" id="section02" style="background-color: green;">
+				<img src="img/wwwww.jpg" />
+			</section>
+			<section class="scroll-section" id="section03" style="background-color: grayyellow;">
+				<img src="img/eee.jpg" />
+			</section>
+			<section class="scroll-section" id="section04" style="background-color: pink">
+				<img src="img/test03.jpg" />
+			</section>
+		</div>
+	</body>
+	<script src="http://libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
+	<script>
+		var senctionID = 0;
+		var senctionArray = $('.scroll-section');
+		var isScrolling=false;
+		//项目加载完成后运行的项目
+		$(document).ready(function() {
+			adjustFatherDiv();
+			adjustSenctions();
+			buildLittleNavi();
+			JumpToAnotherSection(0);
+			setListenner();
+		});
+		//让父div铺满除了header以外剩余的空间
+		function adjustFatherDiv() {
+			var window_height = $(window).innerHeight();
+			var header_height = $('header').innerHeight();
+			$('#father-div').height(window_height - header_height);
+		}
+		//让每个section铺满父div
+		function adjustSenctions() {
+			var father_div_height = $('#father-div').innerHeight();
+			$('.scroll-section').height(father_div_height);
+		}
+		//添加各类监听
+		function setListenner() {
+			scrollListener();
+			setLittleNaviClickListener();
+			setArrowDownClickListener();
+			setArrowTopClickListener();
+		}
+		//添加滚轮滑动监听
+		function scrollListener() {
+			$('#father-div').on("mousewheel DOMMouseScroll", function(e) {
+				e.preventDefault();
+				if(isScrolling==false){
+					isScrolling=true;
+				var delta = (e.originalEvent.wheelDelta && (e.originalEvent.wheelDelta > 0 ? 1 : -1)) || // chrome & ie
+					(e.originalEvent.detail && (e.originalEvent.detail > 0 ? -1 : 1)); // firefox
+				JumpToAnotherSection(delta);
+
+				}
+			});
+		}
+		//根据delta的值跳转到相应的senction，0不动，1上一个，-1下一个
+		function JumpToAnotherSection(delta) {
+			senctionID = senctionID - delta;
+			if (senctionID < 0) {
+				senctionID = 0
+			}
+			if (senctionID > senctionArray.length-1) {
+				senctionID = senctionArray.length-1
+			};
+			$('#father-div').stop().animate({
+				scrollTop:$('#father-div').innerHeight()*senctionID+"px"
+			}, 500,function(){
+				isScrolling=false;
+			});
+			
+			MakeElementHideOrShow();
+			updateLittleNavi();
+		}
+		//根据senction的数量动态的创建小圆点
+		function buildLittleNavi(){
+			for(var i=0;i<senctionArray.length;i++){
+				var item=$("<div class='little-Navi-item'></div>");
+				$('#little-Navi').append(item);				
+				var img=$("<img class='little-Navi-img' src='img/t1.png' />")
+				var str='little-Navi-img-'+i;
+				$(img).attr("id",str);
+				$(item).append(img);
+			}
+		}
+		
+		//更新小圆点的状态，被选中的页面相应小圆点变红。
+		function updateLittleNavi(){
+			var items=$('.little-Navi-img');
+			for(var i=0;i<items.length;i++){
+				if($(items[i]).attr('id')==('little-Navi-img-'+senctionID)){
+					$(items[i]).attr('src','img/t2.png')
+				}else{
+					$(items[i]).attr('src','img/t1.png')
+				}
+			}
+		}
+		
+		//给小圆点添加点击事件
+		function setLittleNaviClickListener(){
+			var items=$('.little-Navi-img');
+			for(var i=0;i<senctionArray.length;i++){
+				$(items[i]).click(function(){
+					var id=parseInt($(this).attr("id").substring(16,$(this).attr("id").length));
+					var delta=senctionID-id;
+					JumpToAnotherSection(delta);
+				})
+			}
+		}
+		
+		//给下箭头设置点击事件；
+		function setArrowDownClickListener(){
+			$('#arrow-down').click(function(){
+				JumpToAnotherSection(-1);
+				
+			})
+		}
+		//给上箭头设置点击事件
+		function setArrowTopClickListener(){
+			$('#arrow-top').click(function(){
+				JumpToAnotherSection(senctionID);
+
+			})
+		}
+		
+		//每次完成跳转之后判定一下哪些元素要显示哪些不要。
+		function MakeElementHideOrShow(){
+			if(senctionID==senctionArray.length-1){
+				$('#arrow-down').hide();
+			}else{
+				$('#arrow-down').show();
+			}
+			
+			if(senctionID==0){
+				$('#arrow-top').hide();
+			}else{
+				$('#arrow-top').show();
+			}
+			
+		};
+		
+		
+		
+	</script>
+
+</html>
